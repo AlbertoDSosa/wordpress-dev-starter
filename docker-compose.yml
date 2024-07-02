@@ -1,0 +1,52 @@
+services:
+  web:
+    build: ./docker/build/wp-web
+    # restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./wordpress:/var/www/html
+      - ./docker/config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    environment:
+      APACHE_RUN_USER: <your_pc_user>
+      APACHE_RUN_GROUP: <your_pc_user>
+    networks:
+      wp-network:
+        ipv4_address: 172.18.0.10
+  phpmyadmin:
+    image: phpmyadmin
+    # restart: always
+    depends_on:
+      - db
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db:3306
+      - PMA_USER=root
+      - PMA_PASSWORD=yalasabes
+      # - MAX_EXECUTION_TIME=
+      # - MEMORY_LIMIT=
+      # - UPLOAD_LIMIT=
+
+    networks:
+      wp-network:
+        ipv4_address: 172.18.0.11
+  db:
+    image: mariadb
+    # restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: yalasabes
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: root
+    networks:
+      wp-network:
+        ipv4_address: 172.18.0.12
+volumes:
+  db_data: {}
+networks:
+  wp-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24
